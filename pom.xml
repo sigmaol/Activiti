@@ -706,6 +706,7 @@
     <module>modules/activiti-dependency-check</module>
     <module>modules/activiti-parent</module>
     <module>modules/activiti-bpmn-model</module>
+    <!--流程校验等操作的模块-->
     <module>modules/activiti-process-validation</module>
     <module>modules/activiti-bpmn-layout</module>
     <module>modules/activiti-image-generator</module>
@@ -714,6 +715,7 @@
     <module>modules/activiti-form-api</module>
     <module>modules/activiti-dmn-model</module>
     <module>modules/activiti-dmn-api</module>
+    <!--最核心的一个引擎，以来上面的各个模块构建-->
     <module>modules/activiti-engine</module>
   </modules>
   <build>

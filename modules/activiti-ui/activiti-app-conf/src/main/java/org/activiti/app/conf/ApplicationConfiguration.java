@@ -17,8 +17,9 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 @Configuration
 @PropertySources({
-	
+	//程序包含的部分
 	@PropertySource("classpath:/META-INF/activiti-app/activiti-app.properties"),
+	//下面两个支持没找到的，可以覆盖
 	@PropertySource(value = "classpath:activiti-app.properties", ignoreResourceNotFound = true),
 	@PropertySource(value = "file:activiti-app.properties", ignoreResourceNotFound = true),
 

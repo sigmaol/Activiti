@@ -47,6 +47,10 @@ public class AppDispatcherServletConfiguration extends WebMvcConfigurationSuppor
     @Inject
     private Environment environment;
 
+    /**
+     * 解析获取本地信息
+     * @return
+     */
     @Bean
     public SessionLocaleResolver localeResolver() {
         return new SessionLocaleResolver();
@@ -60,6 +64,10 @@ public class AppDispatcherServletConfiguration extends WebMvcConfigurationSuppor
         return localeChangeInterceptor;
     }
 
+    /**
+     * 文件上传最大文件大小
+     * @return
+     */
     @Bean
     public MultipartResolver multipartResolver() {
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
@@ -67,17 +75,27 @@ public class AppDispatcherServletConfiguration extends WebMvcConfigurationSuppor
         return multipartResolver;
     }
 
+    /**
+     * url 和 方法映射起来
+     * @return
+     */
     @Bean
     public RequestMappingHandlerMapping requestMappingHandlerMapping() {
         log.debug("Creating requestMappingHandlerMapping");
         RequestMappingHandlerMapping requestMappingHandlerMapping = new RequestMappingHandlerMapping();
+        //关闭后缀匹配
         requestMappingHandlerMapping.setUseSuffixPatternMatch(false);
+        //不移除分号，保留原始url
         requestMappingHandlerMapping.setRemoveSemicolonContent(false);
         Object[] interceptors = {localeChangeInterceptor()};
         requestMappingHandlerMapping.setInterceptors(interceptors);
         return requestMappingHandlerMapping;
     }
-    
+
+    /**
+     * json转换方法
+     * @param converters
+     */
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         addDefaultHttpMessageConverters(converters);

@@ -42,7 +42,11 @@ public class WebConfigurer implements ServletContextListener {
     public void setContext(AnnotationConfigWebApplicationContext context) {
         this.context = context;
     }
-    
+
+    /**
+     * 上下文启动方法
+     * @param sce
+     */
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         log.debug("Configuring Spring root application context");
@@ -52,7 +56,9 @@ public class WebConfigurer implements ServletContextListener {
         AnnotationConfigWebApplicationContext rootContext = null;
         
         if (context == null) {
+            //构建初始化根容器
             rootContext = new AnnotationConfigWebApplicationContext();
+            //构建容器里面的Bean
             rootContext.register(ApplicationConfiguration.class);
             
             if (rootContext.getServletContext() == null) {
@@ -63,6 +69,7 @@ public class WebConfigurer implements ServletContextListener {
             context = rootContext;
             
         } else {
+            //spring 容器和 servlet双向绑定
             rootContext = context;
             if (rootContext.getServletContext() == null) {
               rootContext.setServletContext(servletContext);
@@ -84,18 +91,24 @@ public class WebConfigurer implements ServletContextListener {
      */
     private void initSpring(ServletContext servletContext, AnnotationConfigWebApplicationContext rootContext) {
         log.debug("Configuring Spring Web application context");
+        //初始化根容器
         AnnotationConfigWebApplicationContext appDispatcherServletConfiguration = new AnnotationConfigWebApplicationContext();
         appDispatcherServletConfiguration.setParent(rootContext);
         appDispatcherServletConfiguration.register(AppDispatcherServletConfiguration.class);
 
+        //然后创建两个子容器
+
         log.debug("Registering Spring MVC Servlet");
-        ServletRegistration.Dynamic appDispatcherServlet = servletContext.addServlet("appDispatcher", 
+        //init app
+        ServletRegistration.Dynamic appDispatcherServlet = servletContext.addServlet("appDispatcher",
                 new DispatcherServlet(appDispatcherServletConfiguration));
         appDispatcherServlet.addMapping("/app/*");
+        //优先级
         appDispatcherServlet.setLoadOnStartup(1);
         appDispatcherServlet.setAsyncSupported(true);
 
         log.debug("Registering Activiti public REST API");
+        //init api
         AnnotationConfigWebApplicationContext apiDispatcherServletConfiguration = new AnnotationConfigWebApplicationContext();
         apiDispatcherServletConfiguration.setParent(rootContext);
         apiDispatcherServletConfiguration.register(ApiDispatcherServletConfiguration.class);
@@ -119,6 +132,10 @@ public class WebConfigurer implements ServletContextListener {
     }
 
 
+    /**
+     * 上下文销毁方法
+     * @param sce
+     */
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         log.info("Destroying Web application");
