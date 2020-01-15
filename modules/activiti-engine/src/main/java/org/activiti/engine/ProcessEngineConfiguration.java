@@ -77,16 +77,19 @@ public abstract class ProcessEngineConfiguration {
 
   /**
    * Checks the version of the DB schema against the library when the process engine is being created and throws an exception if the versions don't match.
+   * 不对数据库做修改
    */
   public static final String DB_SCHEMA_UPDATE_FALSE = "false";
 
   /**
    * Creates the schema when the process engine is being created and drops the schema when the process engine is being closed.
+   * 初始化创建，结束删除
    */
   public static final String DB_SCHEMA_UPDATE_CREATE_DROP = "create-drop";
 
   /**
    * Upon building of the process engine, a check is performed and an update of the schema is performed if it is necessary.
+   * 根据版本做更新
    */
   public static final String DB_SCHEMA_UPDATE_TRUE = "true";
 
@@ -109,6 +112,7 @@ public abstract class ProcessEngineConfiguration {
   protected Map<String, MailServerInfo> mailServers = new HashMap<String, MailServerInfo>();
   protected Map<String, String> mailSessionsJndi = new HashMap<String, String>();
 
+  //默认使用h2
   protected String databaseType;
   protected String databaseSchemaUpdate = DB_SCHEMA_UPDATE_FALSE;
   protected String jdbcDriver = "org.h2.Driver";
@@ -149,6 +153,7 @@ public abstract class ProcessEngineConfiguration {
 
   /**
    * process diagram generator. Default value is DefaulProcessDiagramGenerator
+   * 流程图生成渲染工具
    */
   protected ProcessDiagramGenerator processDiagramGenerator;
 
@@ -197,6 +202,7 @@ public abstract class ProcessEngineConfiguration {
 
   protected String defaultCamelContext = "camelContext";
 
+  //生成流程图字体
   protected String activityFontName = "Arial";
   protected String labelFontName = "Arial";
   protected String annotationFontName = "Arial";
@@ -218,6 +224,7 @@ public abstract class ProcessEngineConfiguration {
   public abstract ProcessEngine buildProcessEngine();
 
   public static ProcessEngineConfiguration createProcessEngineConfigurationFromResourceDefault() {
+    //指定初始化配置文件位置，对应xml流程引擎里面的名称
     return createProcessEngineConfigurationFromResource("activiti.cfg.xml", "processEngineConfiguration");
   }
 
@@ -237,6 +244,7 @@ public abstract class ProcessEngineConfiguration {
     return BeansConfigurationHelper.parseProcessEngineConfigurationFromInputStream(inputStream, beanName);
   }
 
+  //直接返回创建对象
   public static ProcessEngineConfiguration createStandaloneProcessEngineConfiguration() {
     return new StandaloneProcessEngineConfiguration();
   }

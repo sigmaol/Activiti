@@ -45,6 +45,7 @@ import java.util.Collection;
  */
 public class SpringProcessEngineConfiguration extends ProcessEngineConfigurationImpl implements ApplicationContextAware {
 
+  //重新定义事务管理器
   protected PlatformTransactionManager transactionManager;
   protected String deploymentName = "SpringAutoDeployment";
   protected Resource[] deploymentResources = new Resource[0];
@@ -79,6 +80,10 @@ public class SpringProcessEngineConfiguration extends ProcessEngineConfiguration
     }
   }
 
+  /**
+   * 重新定义事务
+   * @return
+   */
   @Override
   public CommandInterceptor createTransactionInterceptor() {
     if (transactionManager == null) {

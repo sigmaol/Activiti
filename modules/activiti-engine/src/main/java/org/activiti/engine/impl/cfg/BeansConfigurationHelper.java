@@ -27,11 +27,18 @@ import org.springframework.core.io.Resource;
  */
 public class BeansConfigurationHelper {
 
+  /**
+   * spring 初始化配置文件
+   * @param springResource
+   * @param beanName
+   * @return
+   */
   public static ProcessEngineConfiguration parseProcessEngineConfiguration(Resource springResource, String beanName) {
     DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
     XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
     xmlBeanDefinitionReader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
     xmlBeanDefinitionReader.loadBeanDefinitions(springResource);
+    //通过bean id get bean.
     ProcessEngineConfigurationImpl processEngineConfiguration = (ProcessEngineConfigurationImpl) beanFactory.getBean(beanName);
     processEngineConfiguration.setBeans(new SpringBeanFactoryProxyMap(beanFactory));
     return processEngineConfiguration;
@@ -43,6 +50,7 @@ public class BeansConfigurationHelper {
   }
 
   public static ProcessEngineConfiguration parseProcessEngineConfigurationFromResource(String resource, String beanName) {
+    //classpath创建资源
     Resource springResource = new ClassPathResource(resource);
     return parseProcessEngineConfiguration(springResource, beanName);
   }

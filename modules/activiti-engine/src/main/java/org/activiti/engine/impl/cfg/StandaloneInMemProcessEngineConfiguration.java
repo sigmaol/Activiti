@@ -18,6 +18,7 @@ package org.activiti.engine.impl.cfg;
  */
 public class StandaloneInMemProcessEngineConfiguration extends StandaloneProcessEngineConfiguration {
 
+  //基于独立的内存数据库
   public StandaloneInMemProcessEngineConfiguration() {
     this.databaseSchemaUpdate = DB_SCHEMA_UPDATE_CREATE_DROP;
     this.jdbcUrl = "jdbc:h2:mem:activiti";
