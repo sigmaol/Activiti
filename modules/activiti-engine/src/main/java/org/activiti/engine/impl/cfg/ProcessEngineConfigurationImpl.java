@@ -855,6 +855,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void initDataSource() {
     if (dataSource == null) {
+        //取jndi数据源
       if (dataSourceJndiName != null) {
         try {
           dataSource = (DataSource) new InitialContext().lookup(dataSourceJndiName);
@@ -869,20 +870,27 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
         log.debug("initializing datasource to db: {}", jdbcUrl);
 
+        //创建数据源连接池, mybatis提供的
         PooledDataSource pooledDataSource = new PooledDataSource(ReflectUtil.getClassLoader(), jdbcDriver, jdbcUrl, jdbcUsername, jdbcPassword);
 
+        //最大活跃数
         if (jdbcMaxActiveConnections > 0) {
           pooledDataSource.setPoolMaximumActiveConnections(jdbcMaxActiveConnections);
         }
+
+        //最大空闲数量
         if (jdbcMaxIdleConnections > 0) {
           pooledDataSource.setPoolMaximumIdleConnections(jdbcMaxIdleConnections);
         }
+
         if (jdbcMaxCheckoutTime > 0) {
           pooledDataSource.setPoolMaximumCheckoutTime(jdbcMaxCheckoutTime);
         }
+
         if (jdbcMaxWaitTime > 0) {
           pooledDataSource.setPoolTimeToWait(jdbcMaxWaitTime);
         }
+
         if (jdbcPingEnabled == true) {
           pooledDataSource.setPoolPingEnabled(true);
           if (jdbcPingQuery != null) {
@@ -893,6 +901,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
         if (jdbcDefaultTransactionIsolationLevel > 0) {
           pooledDataSource.setDefaultTransactionIsolationLevel(jdbcDefaultTransactionIsolationLevel);
         }
+
+        //最后赋值给dataSource
         dataSource = pooledDataSource;
       }
 
@@ -908,6 +918,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     }
   }
 
+  //数据关系映射
   protected static Properties databaseTypeMappings = getDefaultDatabaseTypeMappings();
 
   public static final String DATABASE_TYPE_H2 = "h2";
