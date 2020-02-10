@@ -751,6 +751,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     initDefaultCommandConfig();
     initSchemaCommandConfig();
     initCommandInvoker();
+    //初始化
     initCommandInterceptors();
     initCommandExecutor();
   }
@@ -779,6 +780,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void initCommandInterceptors() {
     if (commandInterceptors == null) {
+      //装填的不同配置的拦截器，合集
       commandInterceptors = new ArrayList<CommandInterceptor>();
       if (customPreCommandInterceptors != null) {
         commandInterceptors.addAll(customPreCommandInterceptors);

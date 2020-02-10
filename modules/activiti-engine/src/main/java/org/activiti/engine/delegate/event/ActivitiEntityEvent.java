@@ -20,6 +20,7 @@ package org.activiti.engine.delegate.event;
 public interface ActivitiEntityEvent extends ActivitiEvent {
 
   /**
+   * 如果是实体，entity event就很好
    * @return the entity that is targeted by this event.
    */
   Object getEntity();

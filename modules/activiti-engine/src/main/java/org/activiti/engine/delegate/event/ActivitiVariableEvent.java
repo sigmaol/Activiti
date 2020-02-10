@@ -24,16 +24,19 @@ public interface ActivitiVariableEvent extends ActivitiEvent {
 
   /**
    * @return the name of the variable involved.
+   * 变量名称
    */
   String getVariableName();
 
   /**
    * @return the current value of the variable.
+   * 变量值
    */
   Object getVariableValue();
 
   /**
    * @return The {@link VariableType} of the variable.
+   * 变量类型
    */
   VariableType getVariableType();
 

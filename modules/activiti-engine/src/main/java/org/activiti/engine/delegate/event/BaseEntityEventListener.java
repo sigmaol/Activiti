@@ -13,6 +13,8 @@
 package org.activiti.engine.delegate.event;
 
 /**
+ * 当需要实体监听的时候，可以使用这个类
+ *
  * Base event listener that can be used when implementing an {@link ActivitiEventListener} to get notified when an entity is created, updated, deleted or if another entity-related event occurs.
  * 
  * Override the <code>onXX(..)</code> methods to respond to entity changes accordingly.
@@ -50,6 +52,7 @@ public class BaseEntityEventListener implements ActivitiEventListener {
   @Override
   public final void onEvent(ActivitiEvent event) {
     if (isValidEvent(event)) {
+      //路由
       // Check if this event
       if (event.getType() == ActivitiEventType.ENTITY_CREATED) {
         onCreate(event);
