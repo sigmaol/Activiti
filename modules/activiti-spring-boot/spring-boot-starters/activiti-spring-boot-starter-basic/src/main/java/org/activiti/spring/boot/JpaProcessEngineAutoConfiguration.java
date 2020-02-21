@@ -41,6 +41,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class JpaProcessEngineAutoConfiguration {
 
   @Configuration
+  //使用jpa的时候，会使用这个装配方式
   @ConditionalOnClass(name= "javax.persistence.EntityManagerFactory")
   @EnableConfigurationProperties(ActivitiProperties.class)
   public static class JpaConfiguration extends AbstractProcessEngineAutoConfiguration {

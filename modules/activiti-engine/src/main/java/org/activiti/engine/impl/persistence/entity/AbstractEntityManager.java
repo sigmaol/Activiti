@@ -54,6 +54,7 @@ public abstract class AbstractEntityManager<EntityImpl extends Entity> extends A
     getDataManager().insert(entity);
 
     ActivitiEventDispatcher eventDispatcher = getEventDispatcher();
+    //发出事件
     if (fireCreateEvent && eventDispatcher.isEnabled()) {
       eventDispatcher.dispatchEvent(ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_CREATED, entity));
       eventDispatcher.dispatchEvent(ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_INITIALIZED, entity));

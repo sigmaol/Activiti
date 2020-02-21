@@ -407,6 +407,7 @@ public class DbSqlSession implements Session {
   // flush
   // ////////////////////////////////////////////////////////////////////
 
+  //只有流程提交的时候，才会真正写入数据库
   public void flush() {
     determineUpdatedObjects(); // Needs to be done before the removeUnnecessaryOperations, as removeUnnecessaryOperations will remove stuff from the cache
     removeUnnecessaryOperations();

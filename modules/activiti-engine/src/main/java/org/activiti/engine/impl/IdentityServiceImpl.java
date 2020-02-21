@@ -60,6 +60,7 @@ public class IdentityServiceImpl extends ServiceImpl implements IdentityService 
   }
 
   public void saveUser(User user) {
+    //命令执行器，在执行
     commandExecutor.execute(new SaveUserCmd(user));
   }
 

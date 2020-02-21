@@ -38,6 +38,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class DataSourceProcessEngineAutoConfiguration {
 
     @Configuration
+    //jpa 规范，没有的时候会创建
     @ConditionalOnMissingClass("javax.persistence.EntityManagerFactory")
     @EnableConfigurationProperties(ActivitiProperties.class)
     public static class DataSourceProcessEngineConfiguration extends AbstractProcessEngineAutoConfiguration {
