@@ -16,9 +16,10 @@
 
 package org.activiti.api.task.model;
 
-import java.util.Date;
-
 import org.activiti.api.model.shared.model.ApplicationElement;
+
+import java.util.Date;
+import java.util.List;
 
 public interface Task extends ApplicationElement {
 
@@ -70,4 +71,8 @@ public interface Task extends ApplicationElement {
     boolean isStandalone();
     
     String getTaskDefinitionKey();
+
+    List<String> getCandidateUsers();
+
+    List<String> getCandidateGroups();
 }

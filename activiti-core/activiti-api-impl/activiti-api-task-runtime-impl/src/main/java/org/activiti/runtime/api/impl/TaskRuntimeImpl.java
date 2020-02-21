@@ -16,10 +16,6 @@
 
 package org.activiti.runtime.api.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 import org.activiti.api.model.shared.model.VariableInstance;
 import org.activiti.api.runtime.shared.NotFoundException;
 import org.activiti.api.runtime.shared.query.Page;
@@ -51,6 +47,10 @@ import org.activiti.runtime.api.model.impl.APITaskConverter;
 import org.activiti.runtime.api.model.impl.APIVariableInstanceConverter;
 import org.activiti.runtime.api.query.impl.PageImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @PreAuthorize("hasRole('ACTIVITI_USER')")
 public class TaskRuntimeImpl implements TaskRuntime {
@@ -88,7 +88,7 @@ public class TaskRuntimeImpl implements TaskRuntime {
 
     @Override
     public Task task(String taskId) {
-        return taskConverter.from(taskRuntimeHelper.getInternalTaskWithChecks(taskId));
+        return taskConverter.fromWithCandidates(taskRuntimeHelper.getInternalTaskWithChecks(taskId));
     }
 
     @Override
@@ -194,7 +194,7 @@ public class TaskRuntimeImpl implements TaskRuntime {
         try {
             task = task(releaseTaskPayload.getTaskId());
         } catch (IllegalStateException ex) {
-            throw new IllegalStateException("The authenticated user cannot claim task" + releaseTaskPayload.getTaskId() + " due it is not a candidate for it");
+            throw new IllegalStateException("The authenticated user cannot release task" + releaseTaskPayload.getTaskId() + " due it is not a candidate for it");
         }
         // validate the the task doesn't have an assignee
         if (task.getAssignee() == null || task.getAssignee().isEmpty()) {
@@ -261,8 +261,6 @@ public class TaskRuntimeImpl implements TaskRuntime {
         task.setFormKey(createTaskPayload.getFormKey());
         task.setOwner(securityManager.getAuthenticatedUserId());
         taskService.saveTask(task);
-        taskService.addCandidateUser(task.getId(),
-                securityManager.getAuthenticatedUserId());
         if (createTaskPayload.getCandidateGroups() != null && !createTaskPayload.getCandidateGroups().isEmpty()) {
             for ( String g : createTaskPayload.getCandidateGroups() ) {
                 taskService.addCandidateGroup(task.getId(),
@@ -432,6 +430,17 @@ public class TaskRuntimeImpl implements TaskRuntime {
         taskRuntimeHelper.updateVariable(false, updateTaskVariablePayload);
     }
 
+    @Override
+    public void save(SaveTaskPayload saveTaskPayload) {
+        taskRuntimeHelper.assertHasAccessToTask(saveTaskPayload.getTaskId());
+
+        taskRuntimeHelper.handleSaveTaskPayload(saveTaskPayload);
+        
+        taskService.setVariablesLocal(saveTaskPayload.getTaskId(),
+                saveTaskPayload.getVariables());
+    }
+
+
     private List<IdentityLink> getIdentityLinks(String taskId) {
         String authenticatedUserId = securityManager.getAuthenticatedUserId();
         if (authenticatedUserId != null && !authenticatedUserId.isEmpty()) {
@@ -445,16 +454,6 @@ public class TaskRuntimeImpl implements TaskRuntime {
             return taskService.getIdentityLinksForTask(taskId);
         }
         throw new IllegalStateException("There is no authenticated user, we need a user authenticated to find tasks");
-    }
-
-    @Override
-    public void save(SaveTaskPayload saveTaskPayload) {
-        taskRuntimeHelper.assertHasAccessToTask(saveTaskPayload.getTaskId());
-
-        taskRuntimeHelper.handleSaveTaskPayload(saveTaskPayload);
-        
-        taskService.setVariablesLocal(saveTaskPayload.getTaskId(),
-                saveTaskPayload.getVariables());
     }
 
 }

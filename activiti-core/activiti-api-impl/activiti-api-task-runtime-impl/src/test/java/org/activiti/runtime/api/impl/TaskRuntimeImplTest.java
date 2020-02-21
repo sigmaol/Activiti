@@ -16,10 +16,14 @@
 
 package org.activiti.runtime.api.impl;
 
+import org.activiti.api.runtime.shared.security.SecurityManager;
 import org.activiti.api.task.model.Task;
 import org.activiti.api.task.model.builders.TaskPayloadBuilder;
 import org.activiti.api.task.model.impl.TaskImpl;
 import org.activiti.api.task.model.payloads.UpdateTaskPayload;
+import org.activiti.engine.TaskService;
+import org.activiti.engine.task.IdentityLink;
+import org.activiti.runtime.api.model.impl.APITaskConverter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -37,13 +41,28 @@ public class TaskRuntimeImplTest {
     @Mock
     private TaskRuntimeHelper taskRuntimeHelper;
 
+    @Mock
+    private APITaskConverter taskConverter;
+
+    @Mock
+    private org.activiti.engine.task.Task engineTaskMock;
+
+    @Mock
+    private SecurityManager securityManager;
+
+    @Mock
+    private TaskService taskService;
+
+    @Mock
+    private IdentityLink identityLink;
+
     @Before
     public void setUp() {
         initMocks(this);
     }
 
     @Test
-    public void updateShouldReturnResultOfHelper() {
+    public void should_returnResultOfHelper_when_updateTask() {
         //given
         UpdateTaskPayload updateTaskPayload = TaskPayloadBuilder
                 .update()
@@ -61,4 +80,5 @@ public class TaskRuntimeImplTest {
         //then
         assertThat(retrievedTask).isEqualTo(updatedTask);
     }
+
 }

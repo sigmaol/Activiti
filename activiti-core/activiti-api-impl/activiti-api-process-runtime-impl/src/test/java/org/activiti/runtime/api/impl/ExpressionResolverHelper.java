@@ -3,22 +3,17 @@ package org.activiti.runtime.api.impl;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.delegate.invocation.DefaultDelegateInterceptor;
 import org.activiti.engine.impl.el.ExpressionManager;
 import org.activiti.engine.impl.persistence.entity.VariableInstance;
-import org.activiti.spring.process.model.ProcessExtensionModel;
+import org.activiti.spring.process.model.Extension;
 import org.activiti.spring.process.model.VariableDefinition;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 public class ExpressionResolverHelper {
 
@@ -32,12 +27,17 @@ public class ExpressionResolverHelper {
     }
 
     public static ExpressionResolver initContext(DelegateExecution execution,
-                                                ProcessExtensionModel extensions)
-            throws JsonParseException, JsonMappingException, IOException {
+                                                Extension extensions) {
         initializeExpressionResolver();
-        
-        Map<String, Object> variables = converstToStringObjectMap(extensions.getExtensions().getProperties());
-        
+
+        Map<String, Object> variables = convertToStringObjectMap(extensions.getProperties());
+
+        setExecutionVariables(execution, variables);
+        return new ExpressionResolver(new ExpressionManager(),
+                                      objectMapper, new DefaultDelegateInterceptor());
+    }
+
+    public static void setExecutionVariables(DelegateExecution execution, Map<String, Object> variables) {
         given(execution.getVariables()).willReturn(variables);
         given(execution.getVariablesLocal()).willReturn(variables);
         for (String key : variables.keySet()) {
@@ -47,11 +47,11 @@ public class ExpressionResolverHelper {
             given(execution.getVariableInstance(key)).willReturn(var);
             given(execution.getVariable(key)).willReturn(variables.get(key));
         }
-        return new ExpressionResolver(new ExpressionManager(),
-                                      objectMapper);
     }
 
-    public static Map<String, Object> converstToStringObjectMap(Map<String, VariableDefinition> sourceMap) {
+
+    private static Map<String, Object> convertToStringObjectMap(
+        Map<String, VariableDefinition> sourceMap) {
         Map<String, Object> result = new HashMap<>();
         sourceMap.forEach((key,
                 value) -> result.put(value.getName(),

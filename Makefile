@@ -11,14 +11,12 @@ updatebot/push:
 	@echo doing updatebot push $(RELEASE_VERSION)
 	updatebot push --ref $(RELEASE_VERSION)
 
-
 updatebot/push-version:
 	@echo Doing updatebot push-version.....
 	updatebot push-version --kind maven \
 		org.activiti.dependencies:activiti-dependencies $(RELEASE_VERSION) \
 		org.activiti.api:activiti-api-dependencies $(RELEASE_VERSION) \
-		org.activiti.core.common:activiti-core-common-dependencies $(RELEASE_VERSION) \
-		org.activiti.build:activiti-parent $(RELEASE_VERSION)
+		org.activiti.core.common:activiti-core-common-dependencies $(RELEASE_VERSION)
 
 updatebot/update:
 	@echo doing updatebot update $(RELEASE_VERSION)

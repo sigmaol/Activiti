@@ -22,17 +22,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.activiti.api.process.model.builders.ProcessPayloadBuilder;
 import org.activiti.common.util.DateFormatterProvider;
+import org.activiti.engine.impl.delegate.invocation.DefaultDelegateInterceptor;
 import org.activiti.engine.impl.el.ExpressionManager;
 import org.activiti.spring.process.ProcessExtensionService;
 import org.activiti.spring.process.model.Extension;
-import org.activiti.spring.process.model.ProcessExtensionModel;
 import org.activiti.spring.process.model.VariableDefinition;
 import org.activiti.spring.process.variable.VariableValidationService;
 import org.activiti.spring.process.variable.types.DateVariableType;
@@ -43,30 +44,28 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class ProcessVariablesPayloadValidatorTest {
- 
+
     @Mock
     private ProcessExtensionService processExtensionService;
-    
+
     private DateFormatterProvider dateFormatterProvider = new DateFormatterProvider("yyyy-MM-dd[['T']HH:mm:ss[.SSS'Z']]");
     private ObjectMapper objectMapper = new ObjectMapper();
     private VariableNameValidator variableNameValidator = new VariableNameValidator();
-    
+
     private Map<String, VariableType> variableTypeMap;
-    
+
     private ProcessVariablesPayloadValidator processVariablesValidator;
     private VariableValidationService variableValidationService;
-    
+
     private ExpressionResolver expressionResolver = new ExpressionResolver(new ExpressionManager(),
-                                                                           objectMapper);
+        objectMapper,
+        new DefaultDelegateInterceptor());
 
     @Before
     public void setUp() {
         initMocks(this);
-        
+
         VariableDefinition variableDefinitionName = new VariableDefinition();
         variableDefinitionName.setName("name");
         variableDefinitionName.setType("string");
@@ -78,7 +77,7 @@ public class ProcessVariablesPayloadValidatorTest {
         VariableDefinition variableDefinitionSubscribe = new VariableDefinition();
         variableDefinitionSubscribe.setName("subscribe");
         variableDefinitionSubscribe.setType("boolean");
-        
+
         VariableDefinition variableDefinitionDate = new VariableDefinition();
         variableDefinitionDate.setName("mydate");
         variableDefinitionDate.setType("date");
@@ -105,26 +104,20 @@ public class ProcessVariablesPayloadValidatorTest {
         variableTypeMap.put("datetime", new DateVariableType(Date.class, dateFormatterProvider));
 
         variableValidationService = new VariableValidationService(variableTypeMap);
-        
+
         processVariablesValidator = new ProcessVariablesPayloadValidator(dateFormatterProvider,
                                                                          processExtensionService,
                                                                          variableValidationService,
                                                                          variableNameValidator,
                                                                          expressionResolver);
-        
         Extension extension = new Extension();
         extension.setProperties(properties);
-
-        ProcessExtensionModel processExtensionModel = new ProcessExtensionModel();
-        processExtensionModel.setId("1");
-        processExtensionModel.setExtensions(extension);
-        
         given(processExtensionService.getExtensionsForId(any()))
-                   .willReturn(processExtensionModel);
+                   .willReturn(extension);
     }
 
     @Test
-    public void should_returnErrorList_when_setVariablesWithWrongType() throws Exception {
+    public void should_returnErrorList_when_setVariablesWithWrongType() {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("name", "Alice");
@@ -139,14 +132,14 @@ public class ProcessVariablesPayloadValidatorTest {
                                                                             "10"));
 
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
-        
+
         assertThat(throwable.getMessage())
             .contains("subscribe",
                       "age");
     }
 
     @Test
-    public void should_returnErrorList_when_setVariablesWithNameWrongType() throws Exception {
+    public void should_returnErrorList_when_setVariablesWithNameWrongType() {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("name", "Alice");
@@ -155,7 +148,7 @@ public class ProcessVariablesPayloadValidatorTest {
         variables.put("subs", true);
         variables.put("subscribe", true);
         variables.put("mydate", "2019-08-26T10:20:30.000Z");
-        
+
         String expectedTypeErrorMessage = "age";
 
         Throwable throwable = catchThrowable(() -> processVariablesValidator.checkPayloadVariables(
@@ -165,15 +158,15 @@ public class ProcessVariablesPayloadValidatorTest {
                                                                                 .build(),
                                                                             "10"));
 
-        assertThat(throwable).isInstanceOf(IllegalStateException.class); 
-        
+        assertThat(throwable).isInstanceOf(IllegalStateException.class);
+
         assertThat(throwable.getMessage())
             .contains(expectedTypeErrorMessage);
-        
+
     }
-  
+
     @Test
-    public void should_returnError_when_setVariablesWithWrongDateFormat() throws Exception {
+    public void should_returnError_when_setVariablesWithWrongDateFormat() {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("mydate", "2019-08-26TT10:20:30.000Z");
@@ -186,11 +179,11 @@ public class ProcessVariablesPayloadValidatorTest {
                                                                             "10"));
 
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
-        
+
     }
 
     @Test
-    public void should_returnError_when_setVariablesWithWrongDatetimeFormat() throws Exception {
+    public void should_returnError_when_setVariablesWithWrongDatetimeFormat() {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("mydatetime", "2019-08-26TT10:20:30.000Z");
@@ -203,16 +196,16 @@ public class ProcessVariablesPayloadValidatorTest {
                                                                             "10"));
 
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
-        
+
     }
-    
+
     @Test
-    public void should_returnErrorList_when_setVariableWithWrongCharactersInName() throws Exception {
+    public void should_returnErrorList_when_setVariableWithWrongCharactersInName() {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("name", "Alice");
         variables.put("gen-der", "female");
-  
+
         String expectedTypeErrorMessage = "gen-der";
 
         Throwable throwable = catchThrowable(() -> processVariablesValidator.checkPayloadVariables(
@@ -222,13 +215,13 @@ public class ProcessVariablesPayloadValidatorTest {
                                                                                 .build(),
                                                                             "10"));
 
-        assertThat(throwable).isInstanceOf(IllegalStateException.class); 
-        
+        assertThat(throwable).isInstanceOf(IllegalStateException.class);
+
         assertThat(throwable.getMessage())
             .contains(expectedTypeErrorMessage);
-        
+
     }
-    
+
     @Test
     public void should_throwIllegalStateException_when_payloadVariableWithExpressionInStringVariable() {
         Map<String, Object> variables = new HashMap<>();

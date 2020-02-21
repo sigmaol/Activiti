@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 Alfresco, Inc. and/or its affiliates.
+ * Copyright 2020 Alfresco, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,8 +18,8 @@ package org.activiti.runtime.api.impl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.activiti.api.model.shared.model.VariableInstance;
 import org.activiti.api.process.model.Deployment;
 import org.activiti.api.process.model.ProcessDefinition;
@@ -45,6 +45,7 @@ import org.activiti.api.process.runtime.conf.ProcessRuntimeConfiguration;
 import org.activiti.api.runtime.model.impl.ProcessDefinitionMetaImpl;
 import org.activiti.api.runtime.model.impl.ProcessInstanceImpl;
 import org.activiti.api.runtime.model.impl.ProcessInstanceMetaImpl;
+import org.activiti.api.runtime.shared.UnprocessableEntityException;
 import org.activiti.api.runtime.shared.NotFoundException;
 import org.activiti.api.runtime.shared.query.Page;
 import org.activiti.api.runtime.shared.query.Pageable;
@@ -113,19 +114,10 @@ public class ProcessRuntimeImpl implements ProcessRuntime {
     public ProcessDefinition processDefinition(String processDefinitionId) {
         org.activiti.engine.repository.ProcessDefinition processDefinition;
         // try searching by Key if there is no matching by Id
-        List<org.activiti.engine.repository.ProcessDefinition> list = repositoryService
-                .createProcessDefinitionQuery()
-                .processDefinitionKey(processDefinitionId)
-                .orderByProcessDefinitionVersion()
-                .asc()
-                .list();
-        if (!list.isEmpty()) {
-            processDefinition = list.get(0);
-        } else {
-            processDefinition = repositoryService.getProcessDefinition(processDefinitionId);
-        }
+        processDefinition = findLatestProcessDefinitionByKey(processDefinitionId)
+            .orElseGet(() -> repositoryService.getProcessDefinition(processDefinitionId));
 
-        checkIfDefinitionBelongsToCurrentAppVersion(processDefinition);
+        checkProcessDefinitionBelongsToLatestDeployment(processDefinition);
 
         if (!securityPoliciesManager.canRead(processDefinition.getKey())) {
             throw new ActivitiObjectNotFoundException("Unable to find process definition for the given id:'" + processDefinitionId + "'");
@@ -133,9 +125,19 @@ public class ProcessRuntimeImpl implements ProcessRuntime {
         return processDefinitionConverter.from(processDefinition);
     }
 
-    public void checkIfDefinitionBelongsToCurrentAppVersion(org.activiti.engine.repository.ProcessDefinition processDefinition){
+    private Optional<org.activiti.engine.repository.ProcessDefinition> findLatestProcessDefinitionByKey(String processDefinitionKey) {
+        return repositoryService.createProcessDefinitionQuery()
+            .processDefinitionKey(processDefinitionKey)
+            .orderByProcessDefinitionAppVersion()
+            .desc()
+            .list()
+            .stream()
+            .findFirst();
+    }
+
+    private void checkProcessDefinitionBelongsToLatestDeployment(org.activiti.engine.repository.ProcessDefinition processDefinition){
         if (!selectLatestDeployment().getVersion().equals(processDefinition.getAppVersion())) {
-            throw new ActivitiForbiddenException("Process definition with the given id:'" + processDefinition.getId() + "' belongs to a different application version.");
+            throw new UnprocessableEntityException("Process definition with the given id:'" + processDefinition.getId() + "' belongs to a different application version.");
         }
     }
 
@@ -409,16 +411,11 @@ public class ProcessRuntimeImpl implements ProcessRuntime {
         }
     }
 
-    private ProcessDefinition getProcessDefinitionAndCheckUserHasRights(String processDefinitionId,
-                                                                        String processDefinitionKey) {
+    private ProcessDefinition getProcessDefinitionAndCheckUserHasRights(String processDefinitionId, String processDefinitionKey) {
 
-        ProcessDefinition processDefinition = null;
+        String checkId = processDefinitionKey != null ? processDefinitionKey : processDefinitionId;
 
-        String checkId = processDefinitionKey != null ?
-                         processDefinitionKey :
-                         (processDefinitionId != null ? processDefinitionId : null);
-
-        processDefinition = processDefinition(checkId);
+        ProcessDefinition processDefinition = processDefinition(checkId);
 
         if (processDefinition == null) {
             throw new IllegalStateException("At least Process Definition Id or Key needs to be provided to start a process");
